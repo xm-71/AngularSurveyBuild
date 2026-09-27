@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build && node scripts/make-single-file.mjs",
+    "build": "tsc --noEmit && vite build && vite build -c vite.artifact.config.ts && node scripts/make-single-file.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"
   },

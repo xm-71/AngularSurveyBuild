@@ -71,6 +71,7 @@ export class Ship {
   private landQuatTo = new Quaternion();
   private landDuration = 3;
   private takeoffQuat = new Quaternion();
+  private readonly vRef = new Vector3();
 
   constructor(public model: ShipModel) {}
 
@@ -299,7 +300,7 @@ export class Ship {
     const lowSpace = dist < atmoTop + 600;
     // Co-rotation weight: 1 inside the atmosphere, fading out above it.
     const w = 1 - smoothstep(atmoTop, atmoTop + planet.radius * 0.8, dist);
-    const vRef = planet.frameVelocity(this.pos, _v).multiplyScalar(w);
+    const vRef = planet.frameVelocity(this.pos, this.vRef).multiplyScalar(w);
 
     // --- attitude
     let pitchIn = 0, yawIn = 0, rollIn = 0, fwdIn = 0;

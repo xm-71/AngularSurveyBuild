@@ -351,10 +351,9 @@ export class Game {
     const right = _v2.set(1, 0, 0).applyQuaternion(this.ship.localQuat);
     right.addScaledVector(up, -right.dot(up)).normalize();
     const spot = _v3.copy(this.ship.localPos).addScaledVector(right, 5.5).normalize();
-    const heading = new Vector3().crossVectors(right, up).multiplyScalar(-1);
     // face the ship's nose direction
     const fwd = _v2.set(0, 0, -1).applyQuaternion(this.ship.localQuat);
-    heading.copy(fwd).addScaledVector(up, -fwd.dot(up));
+    const heading = new Vector3().copy(fwd).addScaledVector(up, -fwd.dot(up));
     this.player.placeAt(spot, heading.lengthSq() > 1e-6 ? heading.normalize() : undefined);
     this.player.pitch = -0.05;
   }
@@ -394,7 +393,6 @@ export class Game {
 
   /** Advance the game by dt; `draw` renders a frame (off for debug fast-forward). */
   tick(dt: number, draw: boolean): void {
-
     const key = `${window.innerWidth}x${window.innerHeight}x${window.devicePixelRatio}`;
     if (key !== this.sizeKey) {
       this.sizeKey = key;

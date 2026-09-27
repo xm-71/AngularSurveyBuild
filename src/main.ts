@@ -35,6 +35,8 @@ let game: Game | null = null;
 
 function start(data: Record<string, unknown>): void {
   if (game) return;
+  (window as unknown as { __swBooted: boolean }).__swBooted = true;
+  document.getElementById('boot-wait')?.remove();
   if (!webglAvailable()) {
     showFatal('This browser or device does not support WebGL 2, which the planet renderer needs. Try a recent Chrome, Edge, Firefox or Safari.');
     return;
