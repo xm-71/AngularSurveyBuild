@@ -3,7 +3,8 @@ import { speciesName } from '../engine/names';
 import { hash2, Rng } from '../engine/rng';
 import { nodeSize } from './cubeSphere';
 import type {
-  AtmosphereParams, Biome, CloudParams, FloraKind, FloraSpeciesDesc, Hazard, Liquid, Palette, PlanetParams, TerrainShape,
+  AtmosphereParams, Biome, CloudParams, FloraKind, FloraSpeciesDesc, Hazard, Liquid, Palette, PlanetParams, RingParams,
+  TerrainShape,
 } from './planetTypes';
 import type { ResourceId } from './resources';
 import { TerrainGenerator } from './terrain';
@@ -645,6 +646,20 @@ export function generatePlanetParams(opts: PlanetGenOptions): PlanetParams {
     };
   }
 
+  const rr = rng.fork(15);
+  let rings: RingParams | null = null;
+  if (!opts.isMoon && rr.chance(0.3)) {
+    const hue = rr.chance(0.5) ? rr.range(20, 50) : rr.range(180, 230);
+    rings = {
+      inner: R * rr.range(1.55, 1.9),
+      outer: R * rr.range(2.5, 3.3),
+      colorA: hsl(hue, rr.range(0.15, 0.35), rr.range(0.62, 0.78)),
+      colorB: hsl(hue + rr.range(-25, 25), rr.range(0.2, 0.45), rr.range(0.35, 0.5)),
+      opacity: rr.range(0.55, 0.9),
+      seed: rr.range(0, 1000),
+    };
+  }
+
   const gr = rng.fork(10);
   const floraDensity = gr.range(arch.flora[0], arch.flora[1]);
   const faunaDensity = gr.range(arch.fauna[0], arch.fauna[1]);
@@ -679,6 +694,7 @@ export function generatePlanetParams(opts: PlanetGenOptions): PlanetParams {
     moistureBias,
     atmosphere,
     clouds,
+    rings,
     hazard: hazardLevel > 0.05 ? arch.hazard : 'none',
     hazardLevel,
     temperature,

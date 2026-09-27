@@ -1,8 +1,8 @@
-import { Group, Matrix3, Matrix4, Mesh, Quaternion, SphereGeometry, Vector3, type ShaderMaterial } from 'three';
+import { Group, Matrix3, Matrix4, Mesh, Quaternion, RingGeometry, SphereGeometry, Vector3, type ShaderMaterial } from 'three';
 import type { QualityPreset } from '../engine/settings';
 import type { GenPool } from '../gfx/genPool';
 import {
-  applyPlanetConstants, createCloudMaterial, createPlanetUniforms, createSkyShellMaterial, createTerrainMaterial,
+  applyPlanetConstants, createCloudMaterial, createPlanetUniforms, createRingMaterial, createSkyShellMaterial, createTerrainMaterial,
   createWaterMaterial, type GlobalUniforms, type PlanetUniforms,
 } from '../gfx/materials';
 import { QuadTree } from '../gfx/quadtree';
@@ -38,8 +38,10 @@ export class Planet {
   private waterMat: ShaderMaterial | null;
   private skyMat: ShaderMaterial | null;
   private cloudMat: ShaderMaterial | null;
+  private ringMat: ShaderMaterial | null;
   private sky: Mesh | null = null;
   private clouds: Mesh | null = null;
+  private rings: Mesh | null = null;
   maxLevel = 8;
   distanceToCamera = Infinity;
 
@@ -70,6 +72,7 @@ export class Planet {
     this.waterMat = p.seaLevel !== null ? createWaterMaterial(G, this.uniforms, p) : null;
     this.skyMat = p.atmosphere ? createSkyShellMaterial(G, this.uniforms) : null;
     this.cloudMat = createCloudMaterial(G, this.uniforms, p);
+    this.ringMat = createRingMaterial(G, this.uniforms, p);
 
     if (this.skyMat) {
       this.sky = new Mesh(skyGeo, this.skyMat);
@@ -82,6 +85,13 @@ export class Planet {
       this.clouds.scale.setScalar(p.radius + p.clouds.altitude);
       this.clouds.renderOrder = 102;
       this.group.add(this.clouds);
+    }
+    if (this.ringMat && p.rings) {
+      const g = new RingGeometry(p.rings.inner, p.rings.outer, 192, 1);
+      g.rotateX(-Math.PI / 2);
+      this.rings = new Mesh(g, this.ringMat);
+      this.rings.renderOrder = 103;
+      this.group.add(this.rings);
     }
     this.tree = this.createTree();
   }
@@ -214,6 +224,7 @@ export class Planet {
     this.tree.setWaterRenderOrder(base);
     if (this.sky) this.sky.renderOrder = base + 1;
     if (this.clouds) this.clouds.renderOrder = base + 2;
+    if (this.rings) this.rings.renderOrder = base + 3;
   }
 
   get ready(): boolean {
@@ -230,6 +241,8 @@ export class Planet {
     this.waterMat?.dispose();
     this.skyMat?.dispose();
     this.cloudMat?.dispose();
+    this.ringMat?.dispose();
+    this.rings?.geometry.dispose();
     this.group.removeFromParent();
     this.pool.dropPlanet(this.params.id);
   }

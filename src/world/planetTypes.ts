@@ -71,6 +71,15 @@ export interface CloudParams {
   opacity: number;
 }
 
+export interface RingParams {
+  inner: number;
+  outer: number;
+  colorA: RGB;
+  colorB: RGB;
+  opacity: number;
+  seed: number;
+}
+
 export interface FloraSpeciesDesc {
   index: number;
   kind: FloraKind;
@@ -116,6 +125,7 @@ export interface PlanetParams {
   moistureBias: number;
   atmosphere: AtmosphereParams | null;
   clouds: CloudParams | null;
+  rings: RingParams | null;
   hazard: Hazard;
   hazardLevel: number;
   temperature: number;

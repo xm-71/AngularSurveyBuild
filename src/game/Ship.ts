@@ -347,19 +347,29 @@ export class Ship {
     // --- speed
     if (this.pulse) {
       this.pulseFuel = Math.max(0, this.pulseFuel - dt * 0.9);
-      this.pulseSpeed += (SHIP_SPEEDS.pulseMax - this.pulseSpeed) * dampFactor(0.55, dt);
-      this.speed = this.pulseSpeed;
-      this.thrust = 1;
-      // Drop out near planets, or when heading into one.
-      let drop = this.pulseFuel <= 0 || lowSpace;
-      const lookAhead = this.speed * 2.2;
+      // Brake smoothly toward whatever lies ahead (and near any planet), so the drive
+      // drops out just above the atmosphere instead of stopping far away.
+      const floor = SHIP_SPEEDS.spaceMax;
+      let cap = SHIP_SPEEDS.pulseMax;
       for (const p of universe.planets) {
-        const hit = raySphere(this.pos, fwd, p.center, p.atmoRadius + 1500);
-        if (hit && hit[1] > 0 && hit[0] < lookAhead) drop = true;
+        const shell = p.atmoRadius + 1500;
+        const hit = raySphere(this.pos, fwd, p.center, shell);
+        // only shells still ahead of us; leaving a planet never brakes
+        if (hit && hit[0] > 0) cap = Math.min(cap, hit[0] * 0.75);
+        const toP = _v3.copy(p.center).sub(this.pos);
+        if (toP.dot(fwd) > 0) cap = Math.min(cap, Math.max(0, toP.length() - shell) * 1.6 + floor * 1.1);
       }
       const star = universe.star;
       const hitStar = raySphere(this.pos, fwd, _v3.set(0, 0, 0), star.radius * 6);
-      if (hitStar && hitStar[1] > 0 && hitStar[0] < lookAhead) drop = true;
+      if (hitStar && hitStar[0] > 0) cap = Math.min(cap, hitStar[0] * 0.75);
+      const target = Math.max(cap, floor * 0.9);
+      // Spool up gently but never exceed the cap: holding speed at a fraction of the distance
+      // left makes the approach an exponential slow-down that cannot overshoot the shell.
+      if (target < this.pulseSpeed) this.pulseSpeed = target;
+      else this.pulseSpeed += (target - this.pulseSpeed) * dampFactor(0.55, dt);
+      this.speed = this.pulseSpeed;
+      this.thrust = 1;
+      const drop = this.pulseFuel <= 0 || lowSpace || cap < floor;
       if (drop) {
         this.pulse = false;
         this.speed = SHIP_SPEEDS.spaceMax;

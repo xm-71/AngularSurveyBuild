@@ -13,7 +13,7 @@
     "skipLibCheck": true,
     "noEmit": true,
     "resolveJsonModule": true,
-    "allowImportingTsExtensions": false,
+    "allowImportingTsExtensions": true,
     "useDefineForClassFields": true
   },
   "include": ["src", "vite.config.ts", "vite.artifact.config.ts"]

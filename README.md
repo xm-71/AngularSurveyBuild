@@ -31,7 +31,7 @@ lighter graphics preset automatically; the preset can be changed in Settings.
 
 - **Endless seeded galaxy**: star systems laid out in 12-light-year sectors across a spiral disc, five star classes, 2-6 planets per system plus moons.
 - **Eleven biomes**: lush, tropical, desert, frozen, toxic, irradiated, volcanic, barren, exotic, oceanic and marsh worlds, each with its own palette, terrain style (mesas, canyons, craters, spires), liquids (water, ice, acid, lava), atmosphere colour, clouds, weather and hazards.
-- **Seamless planets**: cube-sphere terrain with quadtree LOD streamed from web workers, so you can fly from orbit to a blade of grass without a loading screen. Planets rotate, so days and nights pass.
+- **Seamless planets**: cube-sphere terrain with quadtree LOD streamed from web workers, so you can fly from orbit to a blade of grass without a loading screen. Planets rotate, so days and nights pass, and some wear ring systems that arc across their skies.
 - **Flora and fauna**: procedural trees, fungi, cacti, crystals and resource plants, instanced around you with wind; herds of generated creatures (four- and six-legged walkers, bipeds, hoppers, flyers) that graze, wander, flee or come closer.
 - **Survival loop**: life support, hazard protection (heat, cold, toxic, radiation, storms), jetpack fuel and health.
 - **Mining, inventory and crafting**: mine plants, rocks, crystals and rare deposits with the multi-tool, and asteroids with ship lasers. Refuel launch thrusters (Hydrogen), the pulse drive (Tritium) and shields (Iron), craft warp cells, and buy upgrades with the units you earn.

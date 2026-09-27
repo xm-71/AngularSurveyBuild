@@ -489,6 +489,102 @@ export function createCloudMaterial(G: GlobalUniforms, P: PlanetUniforms, params
 }
 
 // ---------------------------------------------------------------------------
+// Planetary rings
+
+const RING_VERT = /* glsl */ `
+#include <common>
+#include <logdepthbuf_pars_vertex>
+${ATMO_GLSL}
+uniform int uAtmoSteps;
+varying float vR;
+varying vec3 vWorldPos;
+varying vec3 vInscatter;
+varying vec3 vTransmit;
+void main() {
+  vR = length(position.xz);
+  vec4 wp = modelMatrix * vec4(position, 1.0);
+  vWorldPos = wp.xyz;
+  float dist = length(wp.xyz);
+  atmoScatter(vec3(0.0), wp.xyz / max(dist, 1e-4), dist, uAtmoSteps, vInscatter, vTransmit);
+  gl_Position = projectionMatrix * viewMatrix * wp;
+  #include <logdepthbuf_vertex>
+}
+`;
+
+const RING_FRAG = /* glsl */ `
+#include <common>
+#include <logdepthbuf_pars_fragment>
+${ATMO_GLSL}
+uniform vec3 uSunColor;
+uniform vec3 uNightAmbient;
+uniform float uInner;
+uniform float uOuter;
+uniform vec3 uColA;
+uniform vec3 uColB;
+uniform float uSeed;
+uniform float uOpacity;
+varying float vR;
+varying vec3 vWorldPos;
+varying vec3 vInscatter;
+varying vec3 vTransmit;
+float h1(float x) { return fract(sin(x * 127.1 + uSeed * 3.7) * 43758.5453); }
+float bands(float t) {
+  float n = 0.0, a = 0.5, f = 22.0;
+  for (int i = 0; i < 5; i++) {
+    float x = t * f;
+    float i0 = floor(x);
+    n += mix(h1(i0 + float(i) * 57.0), h1(i0 + 1.0 + float(i) * 57.0), smoothstep(0.0, 1.0, fract(x))) * a;
+    a *= 0.5;
+    f *= 2.35;
+  }
+  return n / 0.97;
+}
+void main() {
+  #include <logdepthbuf_fragment>
+  float t = (vR - uInner) / (uOuter - uInner);
+  if (t < 0.0 || t > 1.0) discard;
+  float b = bands(t);
+  float density = smoothstep(0.2, 0.8, b) * smoothstep(0.0, 0.05, t) * smoothstep(1.0, 0.88, t);
+  density *= 1.0 - 0.9 * (1.0 - smoothstep(0.0, 0.018, abs(t - 0.63)));
+  if (density < 0.01) discard;
+  vec3 col = mix(uColB, uColA, b);
+  // Planet shadow: the ring point is in shadow when the planet lies between it and the sun,
+  // with a soft edge standing in for the atmosphere's penumbra.
+  vec3 oc = vWorldPos - uPlanetCenter;
+  float along = dot(oc, uSunDir);
+  float perp = length(oc - uSunDir * along);
+  float lit = along < 0.0 ? mix(0.06, 1.0, smoothstep(uPlanetRadius * 0.97, uPlanetRadius * 1.08, perp)) : 1.0;
+  vec3 c = col * (uSunColor * 0.75 * lit + uNightAmbient * 2.0);
+  c = c * vTransmit + vInscatter;
+  gl_FragColor = vec4(c, density * uOpacity);
+  #include <tonemapping_fragment>
+  #include <colorspace_fragment>
+}
+`;
+
+export function createRingMaterial(G: GlobalUniforms, P: PlanetUniforms, params: PlanetParams): ShaderMaterial | null {
+  const r = params.rings;
+  if (!r) return null;
+  return new ShaderMaterial({
+    uniforms: {
+      ...G,
+      ...P,
+      uInner: { value: r.inner },
+      uOuter: { value: r.outer },
+      uColA: vec3u(rgbToLinear(r.colorA)),
+      uColB: vec3u(rgbToLinear(r.colorB)),
+      uSeed: { value: r.seed },
+      uOpacity: { value: r.opacity },
+    },
+    vertexShader: RING_VERT,
+    fragmentShader: RING_FRAG,
+    transparent: true,
+    depthWrite: false,
+    side: DoubleSide,
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Lit material for props, flora, creatures and ships.
 
 const LIT_VERT = /* glsl */ `
