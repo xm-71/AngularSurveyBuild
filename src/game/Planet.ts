@@ -196,7 +196,7 @@ export class Planet {
    * Per-frame update: transforms relative to the camera, uniforms and LOD.
    * camWorld is the camera position in system coordinates.
    */
-  update(camWorld: Vector3, sunScatter: Vector3, detailed: boolean): void {
+  update(camWorld: Vector3, sunScatter: Vector3, detailed: boolean, lodScale = 1): void {
     this.group.position.copy(this.center).sub(camWorld);
     this.group.quaternion.copy(this.quat);
     this.distanceToCamera = camWorld.distanceTo(this.center);
@@ -206,7 +206,7 @@ export class Planet {
     u.uPlanetRotInv.value.setFromMatrix4(_m4.makeRotationFromQuaternion(this.quatInv));
 
     const camLocal = this.toLocal(camWorld, _v);
-    this.tree.update(camLocal, detailed);
+    this.tree.update(camLocal, detailed, lodScale);
   }
 
   setRenderRank(rank: number): void {

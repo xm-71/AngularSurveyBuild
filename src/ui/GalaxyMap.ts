@@ -124,7 +124,7 @@ export class GalaxyMap {
       status,
     );
     status.className = 'panel-meta';
-    const help = h('div', { class: 'map-help' }, 'Drag to rotate · scroll or pinch to zoom · click a star to select it. Jumps need open space and a warp cell.');
+    const help = h('div', { class: 'map-help', style: 'align-self:flex-end' }, 'Drag to rotate · scroll or pinch to zoom · click a star to select it. Jumps need open space and a warp cell.');
     const top = h('div', { class: 'map-top' },
       h('div', { class: 'map-help', style: 'pointer-events:none' }, h('div', { class: 'eyebrow' }, 'Galaxy map'), h('div', { style: 'margin-top:4px' }, 'Your system glows teal. Visited systems are ringed.')),
       h('button', { class: 'btn small', type: 'button', onclick: () => this.centerCurrent() }, 'Center on current'),

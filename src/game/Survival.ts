@@ -7,6 +7,7 @@ export interface SurvivalContext {
   submerged: boolean;
   night: boolean;
   hazardUpgrade: number;
+  storm: boolean;
 }
 
 /** Exosuit health, life support and hazard protection. */
@@ -50,6 +51,7 @@ export class Survival {
       if (p.hazard === 'cold' && c.night) hazardRate *= 1.5;
       if (p.hazard === 'heat' && !c.night) hazardRate *= 1.25;
       hazardRate *= 1 - 0.2 * c.hazardUpgrade;
+      if (c.storm) hazardRate *= 2.2;
     }
     if (c.inLiquid === 'water' && c.submerged) hazardRate += 0.2;
     this.hazard = Math.max(0, this.hazard - dt * hazardRate);

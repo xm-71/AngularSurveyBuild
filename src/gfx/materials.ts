@@ -561,6 +561,8 @@ uniform float uGlowStrength;
 uniform float uSpecular;
 uniform float uFlash;
 uniform float uTime;
+uniform float uTranslucency;
+uniform float uAmbientBoost;
 ${LIGHT_GLSL}
 #ifdef USE_GLOW
 varying float vGlow;
@@ -581,12 +583,15 @@ void main() {
   vec3 up = uHasAtmo > 0.5 ? normalize(vWorldPos - uPlanetCenter) : N;
   float NdotL = dot(N, uSunDir);
   float wrap = max((NdotL + 0.25) / 1.25, 0.0);
-  vec3 ambient = uAmbient * (0.6 + 0.4 * dot(N, up)) + uNightAmbient;
+  vec3 ambient = uAmbient * uAmbientBoost * (0.6 + 0.4 * dot(N, up)) + uNightAmbient;
   vec3 lit = albedo * (vSunLight * uSunColor * wrap + ambient + headlamp(vWorldPos, N));
+  // light passing through leaves when backlit
+  float backlit = max(0.0, dot(V, -uSunDir));
+  lit += albedo * vSunLight * uSunColor * uTranslucency * (0.35 + 0.65 * backlit) * max(0.0, -NdotL);
   vec3 H = normalize(V + uSunDir);
   lit += vSunLight * uSunColor * pow(max(dot(N, H), 0.0), 40.0) * uSpecular * step(0.0, NdotL);
   float rim = pow(1.0 - max(dot(N, V), 0.0), 3.0);
-  lit += uAmbient * rim * 0.5;
+  lit += (uAmbient * 0.5 + uSunColor * vSunLight * 0.06) * rim;
   lit += uEmissive;
   #ifdef USE_GLOW
   lit += albedo * vGlow * uGlowStrength * (0.85 + 0.15 * sin(uTime * 2.0 + vWorldPos.x * 0.3));
@@ -609,6 +614,8 @@ export interface LitOptions {
   specular?: number;
   emissive?: RGB;
   doubleSide?: boolean;
+  translucency?: number;
+  ambientBoost?: number;
 }
 
 export function createLitMaterial(G: GlobalUniforms, P: PlanetUniforms, o: LitOptions = {}): ShaderMaterial {
@@ -627,6 +634,8 @@ export function createLitMaterial(G: GlobalUniforms, P: PlanetUniforms, o: LitOp
       uSpecular: { value: o.specular ?? 0.15 },
       uWindAmount: { value: o.wind ?? 0 },
       uFlash: { value: 0 },
+      uTranslucency: { value: o.translucency ?? 0 },
+      uAmbientBoost: { value: o.ambientBoost ?? 1.6 },
     },
     defines,
     vertexShader: LIT_VERT,

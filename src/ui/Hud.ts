@@ -50,6 +50,7 @@ export interface HudFrame {
 
 interface BarEl {
   root: HTMLElement;
+  label: HTMLElement;
   fill: HTMLElement;
   val: HTMLElement;
 }
@@ -175,8 +176,9 @@ export class Hud {
     if (!b) {
       const fill = h('div', { class: 'bar-fill' });
       const val = h('span', { class: 'bar-val' });
-      const root = h('div', { class: 'bar' }, h('span', { class: 'bar-label' }, spec.label), h('div', { class: 'bar-track' }, fill), val);
-      b = { root, fill, val };
+      const label = h('span', { class: 'bar-label' }, spec.label);
+      const root = h('div', { class: 'bar' }, label, h('div', { class: 'bar-track' }, fill), val);
+      b = { root, label, fill, val };
       this.bars.set(spec.key, b);
     }
     return b;
@@ -205,6 +207,7 @@ export class Hud {
     }
     for (const spec of f.bars) {
       const b = this.bar(spec);
+      setText(b.label, spec.label);
       const max = spec.max ?? 100;
       const pct = Math.max(0, Math.min(1, spec.value / max));
       setStyle(b.fill, 'transform', `scaleX(${pct.toFixed(3)})`);

@@ -27,6 +27,8 @@ export class Universe {
   readonly sunScatter = new Vector3();
   readonly starLinear = new Vector3();
   private lightColor = new Vector3(1, 1, 1);
+  /** Scales LOD splitting with the render resolution (set by the game on resize). */
+  lodScale = 1;
 
   constructor(
     private scene: Scene,
@@ -106,7 +108,7 @@ export class Universe {
     for (const p of this.planets) {
       const d = camWorld.distanceTo(p.center);
       // Refine only planets that are reasonably close; distant ones stay at root LOD.
-      p.update(camWorld, this.sunScatter, d < p.radius * 12);
+      p.update(camWorld, this.sunScatter, d < p.radius * 12, this.lodScale);
     }
 
     // Lighting and atmosphere state at the camera.
@@ -134,7 +136,7 @@ export class Universe {
       const lu = this.local;
       lu.uHasAtmo.value = 0;
       lu.uPlanetCenter.value.set(0, 0, 0);
-      lu.uAmbient.value.set(0.03, 0.03, 0.035);
+      lu.uAmbient.value.set(0.05, 0.055, 0.07);
       lu.uSunDir.value.copy(camWorld).multiplyScalar(-1).normalize();
     }
     // Planet shadow at the camera for the direct light.

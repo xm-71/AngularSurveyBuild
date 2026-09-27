@@ -44,6 +44,8 @@ export class Input {
 
   pointerLocked = false;
   dragLook = false;
+  /** performance.now() of the last involuntary pointer-lock loss (e.g. Esc). */
+  lockLostAt = -1e9;
   private dragging = false;
   mouseX = 0;
   mouseY = 0;
@@ -70,6 +72,7 @@ export class Input {
       const wasLocked = this.pointerLocked;
       this.pointerLocked = locked;
       if (wasLocked && !locked) {
+        this.lockLostAt = performance.now();
         this.clearAll();
         this.onPointerLockLost?.();
       }

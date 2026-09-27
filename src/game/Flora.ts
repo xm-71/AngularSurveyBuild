@@ -112,6 +112,8 @@ export class Flora {
         wind: model.wind > 0 ? model.wind / (model.height * model.height) : 0,
         specular: desc.kind === 'crystal' || desc.kind === 'deposit' ? 0.8 : 0.08,
         doubleSide: desc.kind === 'grass' || desc.kind === 'palm' || desc.kind === 'bulb',
+        translucency: desc.resource === 'carbon' || desc.kind === 'grass' ? 0.45 : 0,
+        ambientBoost: 2.0,
       });
       const capacity = 256;
       const mesh = new InstancedMesh(model.geometry, material, capacity);

@@ -32,7 +32,7 @@ export const QUALITY_PRESETS: Record<Quality, QualityPreset> = {
   low: {
     pixelRatio: 1,
     patchRes: 16,
-    splitFactor: 2.2,
+    splitFactor: 2.4,
     maxLevelSpacing: 2.0,
     floraRadius: 160,
     floraDensity: 0.55,
@@ -48,7 +48,7 @@ export const QUALITY_PRESETS: Record<Quality, QualityPreset> = {
   medium: {
     pixelRatio: 1.5,
     patchRes: 24,
-    splitFactor: 2.3,
+    splitFactor: 2.8,
     maxLevelSpacing: 1.2,
     floraRadius: 230,
     floraDensity: 0.75,
@@ -64,7 +64,7 @@ export const QUALITY_PRESETS: Record<Quality, QualityPreset> = {
   high: {
     pixelRatio: 2,
     patchRes: 32,
-    splitFactor: 2.8,
+    splitFactor: 3.3,
     maxLevelSpacing: 0.8,
     floraRadius: 340,
     floraDensity: 1.0,

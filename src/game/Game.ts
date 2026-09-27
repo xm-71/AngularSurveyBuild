@@ -31,6 +31,7 @@ import { Ship } from './Ship';
 import { Survival } from './Survival';
 import { Universe } from './Universe';
 import { Warp } from './Warp';
+import { Weather } from './Weather';
 
 export type Mode = 'title' | 'loading' | 'play' | 'pause' | 'inventory' | 'log' | 'map' | 'warp' | 'dead';
 export type Control = 'foot' | 'ship';
@@ -91,6 +92,7 @@ export class Game {
   readonly asteroids: Asteroids;
   readonly effects: Effects;
   readonly warp: Warp;
+  readonly weather: Weather;
   settings: Settings;
   mode: Mode = 'title';
   control: Control = 'foot';
@@ -139,12 +141,14 @@ export class Game {
     this.scanner = new Scanner(this);
     this.asteroids = new Asteroids(this.ctx.scene, this.G, this.universe.local, q);
     this.warp = new Warp(this);
+    this.weather = new Weather(this.ctx.scene, q.floraRadius > 300 ? 2000 : q.floraRadius > 200 ? 1400 : 800);
 
     this.hud = new Hud(uiRoot);
     this.hud.setVisible(false);
     this.map = new GalaxyMap(this, uiRoot);
     this.menus = new Menus(this, uiRoot);
     this.touch = new TouchControls(this, uiRoot);
+    this.hud.root.classList.toggle('touch', this.touch.active);
 
     this.wireEvents();
     canvas.addEventListener('click', () => {
@@ -282,7 +286,7 @@ export class Game {
     this.beginLoading();
     window.setTimeout(() => {
       this.hud.showBanner(planet.params.name, `${planet.params.label} · ${planet.params.descriptor}`, 6);
-      this.hud.toast('Explore on foot, then press E by your ship to board.', 'var(--accent)', 'i');
+      this.hud.toast(`Explore on foot, then press ${this.key('interact')} by your ship to board.`, 'var(--accent)', 'i');
     }, 1800);
   }
 
@@ -329,7 +333,7 @@ export class Game {
       const flat = n.dot(d);
       if (flat < 0.9) continue;
       const cold = planet.gen.coldness(d.y, h - (sea ?? 0));
-      const score = flat * 2 - Math.max(0, cold - 0.4) * 3 - Math.abs(elev - 0.55) + rng.next() * 0.3;
+      const score = flat * 2 - Math.max(0, cold - 0.6) * 3 - Math.abs(elev - 0.55) + rng.next() * 0.3;
       if (score > bestScore) {
         bestScore = score;
         best = d;
@@ -396,6 +400,10 @@ export class Game {
       this.sizeKey = key;
       resizeRenderContext(this.ctx, this.quality.pixelRatio);
       this.sky.pixelRatio = this.ctx.renderer.getPixelRatio();
+      this.weather.pixelRatio = this.ctx.renderer.getPixelRatio();
+      const px = window.innerHeight * this.ctx.renderer.getPixelRatio();
+      this.universe.lodScale = Math.max(0.7, Math.min(1.5, px / 1000));
+      this.effects.pixelRatio = this.ctx.renderer.getPixelRatio();
     }
 
     this.handleGlobalKeys();
@@ -450,7 +458,9 @@ export class Game {
 
   private handleGlobalKeys(): void {
     const i = this.input;
-    if (i.wasPressed('menu')) {
+    // Esc that just released pointer lock already opened the pause menu.
+    const escConsumed = performance.now() - i.lockLostAt < 400;
+    if (i.wasPressed('menu') && !escConsumed) {
       if (this.mode === 'play') this.setMode('pause');
       else if (this.mode === 'pause' || this.mode === 'inventory' || this.mode === 'log' || this.mode === 'map') this.setMode('play');
     }
@@ -526,6 +536,7 @@ export class Game {
         submerged: this.player.swimming,
         night: this.isNight(p, this.player.pos),
         hazardUpgrade: this.inventory.upgradeLevel('hazard'),
+        storm: this.weather.storm,
       });
       if (this.survival.dead) this.die();
       this.ship.update(dt, null, this.universe, false, 1);
@@ -548,7 +559,7 @@ export class Game {
         this.rig.setMode(this.cockpit ? 'cockpit' : 'chase');
       }
       this.asteroids.updateLasers(dt, input, this);
-      this.survival.update(dt, { inShip: true, planet: null, inLiquid: 'none', submerged: false, night: false, hazardUpgrade: 0 });
+      this.survival.update(dt, { inShip: true, planet: null, inLiquid: 'none', submerged: false, night: false, hazardUpgrade: 0, storm: false });
       this.scanner.update(dt, input);
       this.mining.update(dt, null);
     }
@@ -578,6 +589,18 @@ export class Game {
     this.rig.shake = Math.max(this.rig.shake - dt * 2, this.ship.shake * 0.8 + this.ship.reentry * 0.6);
   }
 
+  /** Control label for prompts: keyboard key on desktop, button name on touch. */
+  key(action: 'interact' | 'jump' | 'pulse' | 'map' | 'mine'): string {
+    const t = this.touch.active;
+    switch (action) {
+      case 'interact': return t ? 'Use' : 'E';
+      case 'jump': return t ? 'Lift off' : 'Space';
+      case 'pulse': return t ? 'Pulse' : 'J';
+      case 'map': return t ? 'Map' : 'M';
+      case 'mine': return t ? 'Mine' : 'LMB';
+    }
+  }
+
   nearShip(): boolean {
     if (this.ship.state !== 'landed' || this.ship.planet !== this.player.planet) return false;
     return this.player.pos.distanceTo(this.ship.localPos) < 9;
@@ -589,7 +612,7 @@ export class Game {
     this.rig.setMode('chase');
     this.mining.stop();
     this.audio.board();
-    this.hud.toast('Press Space to take off', 'var(--accent)', 'i');
+    this.hud.toast(`Press ${this.key('jump')} to take off`, 'var(--accent)', 'i');
   }
 
   exitShip(): void {
@@ -771,7 +794,10 @@ export class Game {
     const cam = this.ctx.camera;
     cam.position.set(0, 0, 0);
     cam.quaternion.copy(this.rig.quat);
-    const baseFov = this.settings.fov;
+    const aspect = cam.aspect || 1;
+    const minHFov = 64 * (Math.PI / 180);
+    const portraitFov = (2 * Math.atan(Math.tan(minHFov / 2) / aspect) * 180) / Math.PI;
+    const baseFov = Math.min(100, Math.max(this.settings.fov, portraitFov));
     const speedKick = this.control === 'ship' && this.ship.state === 'flying'
       ? Math.min(14, this.ship.relativeSpeed(this.universe) / 60) + (this.ship.pulse ? 12 : 0)
       : 0;
@@ -797,6 +823,7 @@ export class Game {
     this.creatures.update(dt, this);
     this.asteroids.update(camPos, dt, this);
     this.effects.update(dt, camPos);
+    this.weather.update(dt, this);
 
     // Globals
     this.G.uTime.value = this.time;
@@ -898,7 +925,7 @@ export class Game {
         if (pr.on) markers.push({ x: pr.x, y: pr.y, label: m.label, sub: formatDistance(dist), kind: m.kind, color: m.color });
         compassMarkers.push({ bearing: bearingOf(m.local), color: m.color, label: '◆' });
       }
-      if (this.nearShip()) prompt = 'E · Board ship';
+      if (this.nearShip()) prompt = `${this.key('interact')} · Board ship`;
       else prompt = this.mining.prompt ?? this.scanner.prompt;
     } else {
       const sh = this.ship;
@@ -909,10 +936,11 @@ export class Game {
       const speed = sh.relativeSpeed(this.universe);
       readout.push({ label: sh.pulse ? 'Pulse' : 'Speed', value: formatSpeed(speed) });
       if (!inSpace && sh.state !== 'landed') readout.push({ label: 'Altitude', value: formatDistance(Math.max(0, sh.altitude)) });
-      if (sh.state === 'landed') prompt = 'Space · Take off    E · Exit ship';
-      else if (sh.state === 'flying' && sh.inAtmosphere && sh.altitude < 600 && !sh.pulse) prompt = 'E · Land';
-      else if (sh.state === 'flying' && inSpace && !sh.pulse) prompt = 'J · Pulse drive    M · Galaxy map';
-      else if (sh.pulse) prompt = 'J · Disengage pulse';
+      const t = this.touch.active;
+      if (sh.state === 'landed') prompt = t ? 'Lift off to launch · Exit to walk' : 'Space · Take off    E · Exit ship';
+      else if (sh.state === 'flying' && sh.inAtmosphere && sh.altitude < 600 && !sh.pulse) prompt = t ? 'Land is ready' : 'E · Land';
+      else if (sh.state === 'flying' && inSpace && !sh.pulse) prompt = t ? 'Pulse drive and galaxy map ready' : 'J · Pulse drive    M · Galaxy map';
+      else if (sh.pulse) prompt = t ? 'Pulse again to drop out' : 'J · Disengage pulse';
 
       if (sh.state === 'flying') {
         // Planet markers
@@ -938,7 +966,7 @@ export class Game {
     let location: HudFrame['location'] = null;
     if (planet && !inSpace) {
       const p = planet.params;
-      const cond = [p.weather, `${p.temperature} °C`];
+      const cond = [this.weather.storm ? `Storm · ${p.weather}` : p.weather, `${p.temperature} °C`];
       if (p.hazard !== 'none') cond.push(`${hazardName(p.hazard)} hazard`);
       location = { name: p.name, sub: `${p.label} · ${p.descriptor}`, cond, hazard: p.hazard !== 'none' ? p.hazard : undefined };
     } else {
@@ -1039,6 +1067,8 @@ export class Game {
       this.ship.localPos.fromArray(sh.localPos);
       this.ship.localQuat.fromArray(sh.localQuat);
       this.ship.state = 'landed';
+      const minR = this.ship.planet.groundRadiusAtLocal(this.ship.localPos) + this.shipModel.gearHeight * 0.8;
+      if (this.ship.localPos.length() < minR) this.ship.localPos.setLength(minR + 0.2);
     } else {
       this.ship.placeFlying(new Vector3().fromArray(sh.pos), new Quaternion().fromArray(sh.quat), sh.speed ?? 0);
     }

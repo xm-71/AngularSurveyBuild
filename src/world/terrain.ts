@@ -204,7 +204,7 @@ export class TerrainGenerator {
 
     // snow / peak cover on flatter cold ground
     const cold = this.coldness(dy, hRel) + vn * 0.15;
-    const snow = sstep(0.45, 0.62, cold) * sstep(0.55, 0.8, slope);
+    const snow = sstep(0.74, 0.9, cold) * sstep(0.55, 0.8, slope);
     if (snow > 0) {
       r += (P.peak[0] - r) * snow;
       g += (P.peak[1] - g) * snow;

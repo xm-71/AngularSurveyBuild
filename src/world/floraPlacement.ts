@@ -88,7 +88,7 @@ export function buildFloraCell(gen: TerrainGenerator, job: FloraJob): FloraResul
       if (m < sp.moistMin + edge || m > sp.moistMax + edge) continue;
       if (living) {
         const cold = gen.coldness(dy, h - (gen.hasSea ? gen.sea : 0));
-        if (cold > 0.62 && sp.kind !== 'conifer') continue;
+        if (cold > 0.78 && sp.kind !== 'conifer') continue;
       }
 
       // slope from two neighbouring samples

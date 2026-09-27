@@ -63,6 +63,7 @@ function exposeDebug(g: Game): void {
         pending: g.pool.pending,
         workers: g.pool.usingWorkers,
         planet: g.activePlanet?.params.name ?? null,
+        settled: g.pool.pending === 0 && g.universe.planets.every((p) => p.tree.requested === 0),
         ship: g.ship.state,
         calls: g.ctx.renderer.info.render.calls,
         tris: g.ctx.renderer.info.render.triangles,

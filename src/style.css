@@ -375,7 +375,7 @@ input[type='checkbox'] { width: 18px; height: 18px; accent-color: var(--accent);
   touch-action: none;
 }
 .tbtn.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-.tbtn[hidden] { visibility: hidden; display: flex !important; }
+.tbtn.off { visibility: hidden; }
 .ttop { position: absolute; top: calc(var(--st) + 60px); right: calc(var(--sr) + 14px); display: flex; flex-direction: column; gap: 8px; pointer-events: auto; }
 .ttop .tbtn { width: 46px; height: 46px; border-radius: 8px; font-size: 9.5px; }
 
@@ -398,4 +398,50 @@ input[type='checkbox'] { width: 18px; height: 18px; accent-color: var(--accent);
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* ---------- Touch HUD layout ---------- */
+.hud.touch .hud-loc { max-width: min(46vw, 300px); padding: 7px 10px; }
+.hud.touch .loc-name { font-size: 14px; }
+.hud.touch .loc-sub { font-size: 11px; }
+.hud.touch .loc-cond { font-size: 11px; margin-top: 3px; }
+.hud.touch .hud-compass { top: calc(var(--st) + 64px); width: min(260px, 60vw); }
+.hud.touch .hud-bars {
+  left: calc(var(--sl) + 12px); top: calc(var(--st) + 112px); bottom: auto;
+  width: min(210px, 46vw); padding: 7px 10px; gap: 4px;
+}
+.hud.touch .bar { grid-template-columns: 64px 1fr 28px; gap: 6px; }
+.hud.touch .bar-label { font-size: 9px; }
+.hud.touch .bar-val { font-size: 11px; }
+.hud.touch .hud-readout {
+  top: auto; bottom: calc(var(--sb) + 150px); right: calc(var(--sr) + 12px);
+  min-width: 0; padding: 5px 10px;
+}
+.hud.touch .ro-value { font-size: 15px; min-width: 64px; }
+.hud.touch .ro-label { font-size: 9.5px; }
+.hud.touch .hud-feed { top: calc(var(--st) + 112px); right: calc(var(--sr) + 12px); max-width: 48vw; }
+.hud.touch .toast { font-size: 12px; padding: 5px 9px; }
+.hud.touch .toast:nth-child(n + 4) { display: none; }
+.hud.touch .prompt { font-size: 12px; padding: 6px 10px; }
+.hud.touch .banner-title { font-size: clamp(18px, 6vw, 30px); }
+.ttop { top: calc(var(--st) + 10px); flex-direction: row; gap: 6px; }
+.ttop .tbtn { width: 44px; height: 38px; }
+@media (orientation: landscape) and (max-height: 520px) {
+  .tbtns { grid-template-columns: repeat(3, 52px); gap: 8px; }
+  .tbtn { width: 52px; height: 52px; }
+  .hud.touch .hud-compass { top: calc(var(--st) + 10px); width: min(220px, 30vw); }
+  .hud.touch .hud-readout { bottom: calc(var(--sb) + 136px); }
+  .hud.touch .hud-bars { top: calc(var(--st) + 88px); }
+  .hud.touch .hud-feed { top: calc(var(--st) + 56px); }
+}
+@media (orientation: portrait) {
+  .ttop .tbtn { width: 40px; height: 36px; font-size: 9px; }
+  .hud.touch .hud-banner { top: 44%; }
+  .hud.touch .hud-loc { top: calc(var(--st) + 56px); max-width: 62vw; }
+  .hud.touch .hud-compass { top: calc(var(--st) + 130px); }
+  .hud.touch .hud-bars { top: calc(var(--st) + 176px); }
+  .hud.touch .hud-feed { top: calc(var(--st) + 176px); max-width: 44vw; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .hud.touch .hud-loc { max-width: 34vw; }
 }

@@ -104,12 +104,12 @@ export class Scanner {
     this.markers = [];
     for (const f of found) {
       const n = perKind.get(f.species.kind) ?? 0;
-      if (n >= 6) continue;
+      if (n >= 3) continue;
       perKind.set(f.species.kind, n + 1);
       const res = RESOURCES[f.species.resource!];
       this.markers.push({ local: f.local, label: res.name, kind: 'resource', color: res.color });
     }
-    for (const c of g.creatures.nearby(center, 160).slice(0, 6)) {
+    for (const c of g.creatures.nearby(center, 160).slice(0, 3)) {
       this.markers.push({ local: c.local, label: g.discoveries.has(c.species.id) ? c.species.name : 'Unknown lifeform', kind: 'creature', color: 'var(--scan)' });
     }
     this.markerTime = 28;

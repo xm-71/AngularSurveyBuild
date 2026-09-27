@@ -53,6 +53,10 @@ export class Mining {
 
   setVisible(v: boolean): void {
     this.tool.visible = v;
+    const aspect = this.game.ctx.camera.aspect || 1;
+    const k = aspect < 1 ? 0.62 : 1;
+    this.tool.scale.setScalar(0.55 * k);
+    this.tool.position.x = aspect < 1 ? 0.1 : 0.19;
   }
 
   stop(): void {

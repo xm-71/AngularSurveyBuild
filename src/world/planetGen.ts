@@ -61,7 +61,7 @@ const ARCHETYPES: Archetype[] = [
     seaChance: 0.9, seaFrac: [0.3, 0.55], liquid: 'water',
     atmoChance: 1, atmoHue: [188, 222], atmoSat: [0.55, 0.9], atmoDensity: [0.8, 1.2],
     cloudChance: 0.95, cloudCover: [0.25, 0.48],
-    flora: [0.75, 1], fauna: [0.7, 1], polarCaps: [0.6, 1.2], snowLine: [0.75, 1.1], moisture: [0.0, 0.15],
+    flora: [0.75, 1], fauna: [0.7, 1], polarCaps: [0.6, 1.2], snowLine: [1.05, 1.45], moisture: [0.0, 0.15],
     rares: ['copper', 'gold', 'silver'],
     floraKinds: ['tree', 'tree', 'bush', 'bush', 'grass', 'rock', 'boulder', 'crystal', 'sodiumPlant', 'oxygenPlant', 'deposit'],
     palette: (rng) => {
@@ -413,7 +413,7 @@ const ARCHETYPES: Archetype[] = [
     seaChance: 1, seaFrac: [0.72, 0.86], liquid: 'water',
     atmoChance: 1, atmoHue: [185, 215], atmoSat: [0.6, 0.9], atmoDensity: [0.9, 1.25],
     cloudChance: 1, cloudCover: [0.3, 0.5],
-    flora: [0.75, 1], fauna: [0.6, 0.9], polarCaps: [0.8, 1.3], snowLine: [0.9, 1.4], moisture: [0.05, 0.2],
+    flora: [0.75, 1], fauna: [0.6, 0.9], polarCaps: [0.8, 1.3], snowLine: [1.1, 1.5], moisture: [0.05, 0.2],
     rares: ['copper', 'silver'],
     floraKinds: ['palm', 'tree', 'bush', 'grass', 'rock', 'boulder', 'crystal', 'sodiumPlant', 'oxygenPlant', 'deposit'],
     palette: (rng) => {

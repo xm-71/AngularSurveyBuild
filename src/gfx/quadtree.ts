@@ -76,6 +76,8 @@ export class QuadTree {
   waterRenderOrder = 100;
   /** Set when any patch finished this frame (e.g. to refresh collisions/flora). */
   changed = false;
+  /** Number of new generation requests issued during the last update. */
+  requested = 0;
 
   constructor(
     private opts: QuadTreeOptions,
@@ -98,9 +100,10 @@ export class QuadTree {
   }
 
   /** camLocal: camera position in planet-local coordinates. */
-  update(camLocal: Vector3, detailed: boolean): void {
+  update(camLocal: Vector3, detailed: boolean, lodScale = 1): void {
     this.frame++;
     this.changed = false;
+    this.requested = 0;
     const o = this.opts;
     const camDist = camLocal.length();
     const rMin = o.radius + Math.max(o.minHeight, o.seaLevel ?? -Infinity);
@@ -121,7 +124,7 @@ export class QuadTree {
         return;
       }
       const dist = Math.max(0, camLocal.distanceTo(node.center) - node.sizeM * 0.7);
-      const wantSplit = detailed && node.level < o.maxLevel && dist < o.splitFactor * node.sizeM;
+      const wantSplit = detailed && node.level < o.maxLevel && dist < o.splitFactor * lodScale * node.sizeM;
       if (wantSplit) {
         if (!node.children) this.split(node);
         const ch = node.children!;
@@ -174,6 +177,7 @@ export class QuadTree {
       return;
     }
     const o = this.opts;
+    this.requested++;
     node.job = this.pool.requestPatch(
       { planetId: o.planetId, face: node.face, level: node.level, x: node.x, y: node.y, res: o.res },
       priority,

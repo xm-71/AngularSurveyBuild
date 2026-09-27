@@ -66,7 +66,6 @@ export class TouchControls {
       btn('Bag', 'inventory', false, 'inv'),
       btn('Log', 'log', false, 'log'),
       btn('Map', 'map', false, 'map'),
-      btn('Pulse', 'pulse', false, 'pulse'),
       btn('Cam', 'camera', false, 'cam'),
     );
     this.root = h('div', { class: 'touch' }, stickZone, lookZone, this.joy, grid, top);
@@ -130,6 +129,7 @@ export class TouchControls {
       if (!this.active) {
         this.active = true;
         this.game.input.touchActive = true;
+        this.game.hud.root.classList.add('touch');
         this.setVisible(this.game.mode === 'play');
       }
     }, { passive: true });
@@ -152,7 +152,10 @@ export class TouchControls {
     setText(this.labels.use, ship ? (flying ? 'Land' : 'Exit') : 'Use');
     setText(this.labels.sprint, ship ? 'Brake' : 'Run');
     this.buttons.find((b) => b.el === this.labels.sprint)!.action = ship ? 'back' : 'sprint';
-    this.labels.pulse.hidden = !flying;
-    this.labels.scan.hidden = ship;
+    // The scan slot becomes the pulse drive while flying.
+    setText(this.labels.scan, flying ? 'Pulse' : 'Scan');
+    this.buttons.find((b) => b.el === this.labels.scan)!.action = flying ? 'pulse' : 'scan';
+    this.labels.scan.classList.toggle('off', ship && !flying);
+    this.labels.cam.classList.toggle('off', !ship);
   }
 }
